@@ -1,0 +1,10 @@
+37fb84d8b629dd4d42241a66ab783d68 *DESCRIPTION
+83ad6d046cbb6c1a20d5ada71bd7bb26 *NAMESPACE
+0e50be2d6d9be65d6ee40eedbf13b8a8 *R/testit.R
+8b043cb5a9c42e3a721e202836f6786f *R/utils.R
+0b74ec12cb758bf45c4d1075e3528447 *man/assert.Rd
+18efd64664b774b564e784f487c60d44 *man/has_message.Rd
+3fcbd29226633535ce972f9ec2727c0b *man/test_pkg.Rd
+9b03dd476061295c9d0c7a699e186294 *tests/test-all.R
+28824b868ae0b1a01e998d9c91a0620f *tests/testit/1-assert.R
+99084c3c6e8aa1ab21bbe923ab1bf204 *tests/testit/2-utils.R

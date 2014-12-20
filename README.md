@@ -1,6 +1,6 @@
 # testit
 
-[![Build Status](https://travis-ci.org/yihui/testit.png)](https://travis-ci.org/yihui/testit)
+[![Build Status](https://travis-ci.org/yihui/testit.svg)](https://travis-ci.org/yihui/testit)
 
 This package provides two simple functions (30 lines of code in total):
 
@@ -15,7 +15,7 @@ This package provides two simple functions (30 lines of code in total):
 The reason is laziness. It is tedious to type these commands repeatedly in
 tests:
 
-```ruby
+```r
 message('checking if these numbers are equal...')
 stopifnot(all.equal(1, 1+1e-10), 10*.1 == 1)
 
@@ -27,7 +27,7 @@ With the two simple functions above, we type six letters (`assert`) instead
 of sixteen (`message` + `stopifnot`), and `assert` is also a more intuitive
 function name for testing purposes (you _assert_ a fact followed by evidence):
 
-```ruby
+```r
 assert(
   'these numbers are equal',
   all.equal(1, 1+1e-10), 10*.1 == 1
@@ -45,13 +45,13 @@ Put the tests under the directory `pkg_name/tests/testit/` (where `pkg_name`
 is the root directory of your package), and write a `test-all.R` under
 `pkg_name/tests/`:
 
-```ruby
+```r
 library(testit)
 test_pkg('pkg_name')
 ```
 
 That is all for `R CMD check`. For package development, it is recommended to
-use [**devtools**](http://cran.r-project.org/package=devtools). In
+use [**devtools**](http://cran.rstudio.com/package=devtools). In
 particular, `Ctrl + Shift + L` in RStudio makes all objects in a package
 visible to you, and you can play with the tests freely.
 
@@ -59,28 +59,32 @@ visible to you, and you can play with the tests freely.
 
 Stable version on CRAN:
 
-```ruby
+```r
 install.packages('testit')
 ```
 
 Development version:
 
-```ruby
-library(devtools)
-install_github('testit', 'yihui')
+```r
+devtools::install_github('yihui/testit')
 ```
 
 ## More
 
-How about [**testthat**](http://cran.r-project.org/package=testthat)? Well,
+How about [**testthat**](http://cran.rstudio.com/package=testthat)? Well,
 this package is far less sophisticated than **testthat**. There is nothing
 fancy in this package. Please do consider **testthat** if your tests require
-more granularity.
+more granularity. I myself do not use **testthat** because I find it unnecessary
+to invent a new vocabulary (`testthat::expect_xxx`), and the error message of
+**testthat** is somehow obscure in my eyes. For **testit**, I do not need to
+think if I should use `expect_equal`, `expect_equivalent`, or
+`expect_identical`; I just write test conditions that return TRUE or FALSE. That
+is the only single rule to remember.
 
 There is no plan to add new features or reinvent anything in this package.
 It is an intentionally tiny package.
 
-<img src="http://i.imgur.com/sDsgmfj.jpg" align="right" width="100" />
+<img src="http://i.imgur.com/sDsgmfj.jpg" align="right" width="100" alt="Xunzi" />
 
 Although he did not really mean it,
 [Xunzi](http://en.wikipedia.org/wiki/Xunzi) said something that happens to

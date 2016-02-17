@@ -1,9 +1,9 @@
 #' Assertions with a message
 #'
-#' This function was built from \code{\link{stopifnot}()}. It emits a message in
-#' case of errors, which can be a helpful hint for diagnosing the errors
-#' (\code{stopifnot()} only prints the possibly truncated source code of the
-#' expressions).
+#' The function \code{assert()} was built from \code{\link{stopifnot}()}. It
+#' emits a message in case of errors, which can be a helpful hint for diagnosing
+#' the errors (\code{stopifnot()} only prints the possibly truncated source code
+#' of the expressions).
 #' @param fact a message for the assertions when any of them fails; treated the
 #'   same way as expressions in \code{...} if it is not a character string,
 #'   which means you do not have to provide a message to this function
@@ -51,6 +51,14 @@ assert = function(fact, ...) {
   }
 }
 
+#' @description The infix operator \code{\%==\%} is simply an alias of the
+#'   \code{\link{identical}()} function to make it slightly easier and intuitive
+#'   to write test conditions. \code{x \%==\% y} is the same as
+#'   \code{identical(x, y)}.
+#' @param x,y two R objects to be compared
+#' @rdname assert
+#' @export
+`%==%` = function(x, y) identical(x, y)
 
 #' Run the tests of a package in its namespace
 #'
@@ -86,13 +94,18 @@ test_pkg = function(package, dir = 'testit') {
   env = new.env(parent = getNamespace(package))
   for (r in rs) {
     rm(list = ls(env, all.names = TRUE), envir = env)
-    sys.source(r, envir = env, chdir = TRUE, keep.source = TRUE)
+    withCallingHandlers(
+      sys.source(r, envir = env, chdir = TRUE, keep.source = TRUE),
+      error = function(e) {
+        message(r, ':')
+      }
+    )
   }
 }
 
 #' Check if an R expression produces warnings or errors
 #'
-#' The two function \code{has_warning()} and \code{has_error()} check if an
+#' The two functions \code{has_warning()} and \code{has_error()} check if an
 #' expression produces warnings and errors, respectively.
 #' @param expr an R expression
 #' @return A logical value.

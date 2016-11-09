@@ -1,6 +1,7 @@
 # testit
 
 [![Build Status](https://travis-ci.org/yihui/testit.svg)](https://travis-ci.org/yihui/testit)
+[![Coverage Status](https://coveralls.io/repos/github/yihui/testit/badge.svg?branch=master)](https://coveralls.io/github/yihui/testit?branch=master)
 
 This package provides two simple functions (30 lines of code in total):
 
@@ -51,7 +52,7 @@ test_pkg('pkg_name')
 ```
 
 That is all for `R CMD check`. For package development, it is recommended to
-use [**devtools**](http://cran.rstudio.com/package=devtools). In
+use [**devtools**](https://CRAN.R-project.org/package=devtools). In
 particular, `Ctrl + Shift + L` in RStudio makes all objects in a package
 visible to you, and you can play with the tests freely.
 
@@ -71,7 +72,7 @@ devtools::install_github('yihui/testit')
 
 ## More
 
-How about [**testthat**](http://cran.rstudio.com/package=testthat)? Well,
+How about [**testthat**](https://CRAN.R-project.org/package=testthat)? Well,
 this package is far less sophisticated than **testthat**. There is nothing
 fancy in this package. Please do consider **testthat** if your tests require
 more granularity. I myself do not use **testthat** because I find it unnecessary

@@ -38,6 +38,11 @@ assert(
   'a non-exported function works',
   is.character(utility_foo(x = 'abcd', y = 1:100))
 )
+
+assert('T is TRUE and F is FALSE by default', {
+  (T == TRUE)
+  (F == FALSE)
+})
 ```
 
 ## R CMD check
@@ -52,7 +57,7 @@ test_pkg('pkg_name')
 ```
 
 That is all for `R CMD check`. For package development, it is recommended to
-use [**devtools**](https://CRAN.R-project.org/package=devtools). In
+use [**devtools**](https://cran.rstudio.org/package=devtools). In
 particular, `Ctrl + Shift + L` in RStudio makes all objects in a package
 visible to you, and you can play with the tests freely.
 
@@ -85,7 +90,7 @@ is the only single rule to remember.
 There is no plan to add new features or reinvent anything in this package.
 It is an intentionally tiny package.
 
-<img src="http://i.imgur.com/sDsgmfj.jpg" align="right" width="100" alt="Xunzi" />
+<img src="https://i.imgur.com/sDsgmfj.jpg" align="right" width="100" alt="Xunzi" />
 
 Although he did not really mean it,
 [Xunzi](http://en.wikipedia.org/wiki/Xunzi) said something that happens to

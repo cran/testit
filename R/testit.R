@@ -7,23 +7,24 @@
 #'
 #' There are two ways to write R expressions in the \code{...} argument.
 #'
-#' The first way is a series of R expressions (each expression is passed as an
-#' individual argument) that return vectors of \code{TRUE}'s (if \code{FALSE} is
-#' returned anywhere, an error will show up).
-#'
-#' The second way is a single R expression wrapped in \code{{}} and passed as a
+#' The first way is a single R expression wrapped in \code{{}} and passed as a
 #' single argument. This expression may contain multiple sub-expressions. A
 #' sub-expression is treated as a test condition if it is wrapped in \code{()}
 #' (meaning its value will be checked to see if it is a logical vector
 #' containing any \code{FALSE} values) , otherwise it is evaluated in the normal
 #' way and its value will not be checked. If the value of the last
 #' sub-expression is logical, it will also be treated as a test condition.
+#'
+#' The second way is a series of R expressions (each expression is passed as an
+#' individual argument) that return vectors of \code{TRUE}'s (if \code{FALSE} is
+#' returned anywhere, an error will show up).
 #' @param fact a message for the assertions when any of them fails; treated the
 #'   same way as expressions in \code{...} if it is not a character string,
 #'   which means you do not have to provide a message to this function
 #' @param ... any number of R expressions; see Details
-#' @return Invisible \code{NULL} if all expressions returned \code{TRUE},
-#'   otherwise an error is signalled and the user-provided message is emitted.
+#' @return For \code{assert()}, invisible \code{NULL} if all expressions
+#'   returned \code{TRUE}, otherwise an error is signalled and the user-provided
+#'   message is emitted. For \code{\%==\%}, \code{TRUE} or \code{FALSE}.
 #' @note The internal implementation of \code{assert()} is different with the
 #'   \code{stopifnot()} function in R \pkg{base}: (1) the custom message
 #'   \code{fact} is emitted if an error occurs; (2) \code{assert()} requires the
@@ -36,7 +37,21 @@
 #'   an error upon the first failed assertion, and will ignore the rest of
 #'   assertions.
 #' @export
-#' @examples ## The first way to write assertions --------------------
+#' @examples
+#' ## The first way to write assertions -------------------
+#'
+#' assert('T is bad for TRUE, and so is F for FALSE', {T=FALSE;F=TRUE
+#' (T!=TRUE)  # note the parentheses
+#' (F!=FALSE)})
+#'
+#' assert('A Poisson random number is non-negative', {
+#' x = rpois(1, 10)
+#' (x >= 0)
+#' (x > -1)  # () is optional because it's the last expression
+#' })
+#'
+#'
+#' ## The second way to write assertions --------------------
 #'
 #' assert('one equals one', 1==1)
 #' assert('seq and : produce equal sequences', seq(1L, 10L) == 1L:10L)
@@ -58,20 +73,8 @@
 #'
 #' # no message
 #' assert(!FALSE, TRUE, is.na(NA))
-#'
-#'
-#' ## The second way to write assertions -------------------
-#'
-#' assert('T is bad for TRUE, and so is F for FALSE', {T=FALSE;F=TRUE
-#' (T!=TRUE)  # note the parentheses
-#' (F!=FALSE)})
-#'
-#' assert('A Poisson random number is non-negative', {
-#' x = rpois(1, 10)
-#' (x >= 0)
-#' x > -1  # do not need () here because it's the last expression
-#' })
 assert = function(fact, ...) {
+  opt = options(testit.asserting = TRUE); on.exit(options(opt), add = TRUE)
   mc = match.call()
   # match.call() uses the arg order in the func def, so fact is always 1st arg
   fact = NULL
@@ -112,11 +115,29 @@ assert2 = function(fact, exprs, envir, all = TRUE) {
 #' @description The infix operator \code{\%==\%} is simply an alias of the
 #'   \code{\link{identical}()} function to make it slightly easier and intuitive
 #'   to write test conditions. \code{x \%==\% y} is the same as
-#'   \code{identical(x, y)}.
+#'   \code{identical(x, y)}. When it is used inside \code{assert()}, a message
+#'   will be printed if the returned value is not \code{TRUE}, to show the
+#'   values of the LHS (\code{x}) and RHS (\code{y}) via \code{\link{str}()},
+#'   which can be helpful for you to check why the assertion failed.
 #' @param x,y two R objects to be compared
 #' @rdname assert
+#' @import utils
 #' @export
-`%==%` = function(x, y) identical(x, y)
+`%==%` = function(x, y) {
+  res = identical(x, y)
+  if (!res && isTRUE(getOption('testit.asserting', FALSE))) {
+    mc = match.call()
+    info = paste(capture.output({
+      cat(deparse_key(mc[[2]]), '(LHS) ==>\n')
+      str(x)
+      cat('----------\n')
+      str(y)
+      cat('<== (RHS)', deparse_key(mc[[3]]), '\n')
+    }), collapse = '\n')
+    message(info)
+  }
+  res
+}
 
 #' Run the tests of a package in its namespace
 #'
@@ -164,8 +185,7 @@ test_pkg = function(package, dir = 'testit') {
         s = if (!is.null(srcref <- attr(z, 'srcref'))) {
           paste0(' at ', basename(attr(srcref, 'srcfile')$filename), '#', srcref[1])
         }
-        z[n] = paste0(z[n], s)
-        cat(z, sep = '\n')
+        cat('Error from', z[1], if (n > 1) '...', s, '\n')
       }
     )
   }

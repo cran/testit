@@ -1,11 +1,11 @@
-e1d4b01eadefdc02dc579ca7d452251f *DESCRIPTION
-8d4dda1a84a55725a51b9963e3ee588d *NAMESPACE
-e162e8f5079d136a7bcd23162fdf00cc *NEWS
-ef28927bca5eda6466a47c8619f52985 *R/testit.R
+f05216e2e4fd2469ec1f2f780f548664 *DESCRIPTION
+78c5938d8bfd6df28866607550a87a6b *NAMESPACE
+e407d2052646953739cecc827b47076d *NEWS
+3c9e4bbf7679112345f8334ecc925dbe *R/testit.R
 c24fd4cbad5d330a945a9e04cd75822b *R/utils.R
 d7abed7e95e250b294874a94e4e02255 *README.md
 4aae9b69bfa4f9baa95bd50f98274ba3 *inst/rstudio/addins.dcf
-f5601995b089ef6ab109ba1bedae2456 *man/assert.Rd
+edd33b8e8a1ba88eb0867bb39f09cd4f *man/assert.Rd
 4811220ddf9663cc8e21554be5dafcad *man/has_message.Rd
 4e059d0078876de01046e14a5a0a13ba *man/test_pkg.Rd
 fc95de596ff143707ce5da2874086a92 *tests/test-all.R

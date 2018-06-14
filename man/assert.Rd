@@ -19,8 +19,9 @@ which means you do not have to provide a message to this function}
 \item{x, y}{two R objects to be compared}
 }
 \value{
-Invisible \code{NULL} if all expressions returned \code{TRUE},
-  otherwise an error is signalled and the user-provided message is emitted.
+For \code{assert()}, invisible \code{NULL} if all expressions
+  returned \code{TRUE}, otherwise an error is signalled and the user-provided
+  message is emitted. For \code{\%==\%}, \code{TRUE} or \code{FALSE}.
 }
 \description{
 The function \code{assert()} was inspired by \code{\link{stopifnot}()}. It
@@ -31,22 +32,25 @@ of the expressions).
 The infix operator \code{\%==\%} is simply an alias of the
   \code{\link{identical}()} function to make it slightly easier and intuitive
   to write test conditions. \code{x \%==\% y} is the same as
-  \code{identical(x, y)}.
+  \code{identical(x, y)}. When it is used inside \code{assert()}, a message
+  will be printed if the returned value is not \code{TRUE}, to show the
+  values of the LHS (\code{x}) and RHS (\code{y}) via \code{\link{str}()},
+  which can be helpful for you to check why the assertion failed.
 }
 \details{
 There are two ways to write R expressions in the \code{...} argument.
 
-The first way is a series of R expressions (each expression is passed as an
-individual argument) that return vectors of \code{TRUE}'s (if \code{FALSE} is
-returned anywhere, an error will show up).
-
-The second way is a single R expression wrapped in \code{{}} and passed as a
+The first way is a single R expression wrapped in \code{{}} and passed as a
 single argument. This expression may contain multiple sub-expressions. A
 sub-expression is treated as a test condition if it is wrapped in \code{()}
 (meaning its value will be checked to see if it is a logical vector
 containing any \code{FALSE} values) , otherwise it is evaluated in the normal
 way and its value will not be checked. If the value of the last
 sub-expression is logical, it will also be treated as a test condition.
+
+The second way is a series of R expressions (each expression is passed as an
+individual argument) that return vectors of \code{TRUE}'s (if \code{FALSE} is
+returned anywhere, an error will show up).
 }
 \note{
 The internal implementation of \code{assert()} is different with the
@@ -62,7 +66,23 @@ The internal implementation of \code{assert()} is different with the
   assertions.
 }
 \examples{
-## The first way to write assertions --------------------
+## The first way to write assertions -------------------
+
+assert("T is bad for TRUE, and so is F for FALSE", {
+    T = FALSE
+    F = TRUE
+    (T != TRUE)  # note the parentheses
+    (F != FALSE)
+})
+
+assert("A Poisson random number is non-negative", {
+    x = rpois(1, 10)
+    (x >= 0)
+    (x > -1)  # () is optional because it's the last expression
+})
+
+
+## The second way to write assertions --------------------
 
 assert("one equals one", 1 == 1)
 assert("seq and : produce equal sequences", seq(1L, 10L) == 1L:10L)
@@ -89,20 +109,4 @@ try(assert("this if statement returns TRUE", if (TRUE) {
 
 # no message
 assert(!FALSE, TRUE, is.na(NA))
-
-
-## The second way to write assertions -------------------
-
-assert("T is bad for TRUE, and so is F for FALSE", {
-    T = FALSE
-    F = TRUE
-    (T != TRUE)  # note the parentheses
-    (F != FALSE)
-})
-
-assert("A Poisson random number is non-negative", {
-    x = rpois(1, 10)
-    (x >= 0)
-    x > -1  # do not need () here because it's the last expression
-})
 }

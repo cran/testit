@@ -19,4 +19,12 @@ assert(
   deparse_key(exprs[[2]]) == '1 + 1'
 )
 
-insert_identical()
+assert('insert_identical() should not work in a non-interactive R session', {
+  if (!interactive()) has_error(insert_identical())
+})
+
+assert('sys.source2() works on empty files', {
+  f = tempfile()
+  writeLines('  ', f)
+  (sys.source2(f, environment()) %==% NULL)
+})

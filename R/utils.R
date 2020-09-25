@@ -1,3 +1,9 @@
+# an internal environment to store objects
+.env = new.env(parent = emptyenv())
+
+# has the package been installed once in test_pkg()?
+.env$installed = FALSE
+
 # find an available dir
 available_dir = function(dirs) {
   for (i in dirs) {
@@ -27,11 +33,11 @@ insert_identical = function() {
 # This function is a modification of base::sys.source.  It allows to specify
 # the top-level environment, which is by default "envir" (the same as in
 # base::sys.source), but for package testing it is desirable to use the
-# package namespace to mimick the environment structure used when packages
+# package namespace to mimic the environment structure used when packages
 # are running. This function assumes that chdir = FALSE and keep.source = TRUE.
 sys.source2 = function(file, envir, top.env = as.environment(envir)) {
   oop = options(keep.source = TRUE, topLevelEnvironment = top.env)
-  on.exit(options(oop))
+  on.exit(options(oop), add = TRUE)
 
   lines = readLines(file, warn = FALSE, encoding = 'UTF-8')
   srcfile = srcfilecopy(file, lines, file.mtime(file), isFile = TRUE)

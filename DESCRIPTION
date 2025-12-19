@@ -1,7 +1,7 @@
 Package: testit
 Type: Package
 Title: A Simple Package for Testing R Packages
-Version: 0.14
+Version: 0.15
 Authors@R: c(
   person("Yihui", "Xie", role = c("aut", "cre"), email = "xie@yihui.name", comment = c(ORCID = "0000-0003-0645-5666", URL = "https://yihui.org")),
   person("Tomas", "Kalibera", role = "ctb"),
@@ -16,11 +16,11 @@ Suggests: rstudioapi
 RoxygenNote: 7.3.3
 Encoding: UTF-8
 NeedsCompilation: no
-Packaged: 2025-12-05 22:55:52 UTC; yihui
+Packaged: 2025-12-18 23:39:43 UTC; yihui
 Author: Yihui Xie [aut, cre] (ORCID: <https://orcid.org/0000-0003-0645-5666>,
     URL: https://yihui.org),
   Tomas Kalibera [ctb],
   Steven Mortimer [ctb]
 Maintainer: Yihui Xie <xie@yihui.name>
 Repository: CRAN
-Date/Publication: 2025-12-06 16:20:02 UTC
+Date/Publication: 2025-12-19 06:20:02 UTC

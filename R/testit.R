@@ -72,7 +72,7 @@ assert2 = function(fact, exprs, envir, all = TRUE) {
     if (all || (i == n && is.logical(val)) ||
         (length(expr) >= 1 && identical(expr[[1]], as.symbol('(')))) {
       if (all_true(val)) next
-      if (!is.null(fact)) message('assertion failed: ', fact)
+      if (!is.null(fact) && !hide_error()) message('assertion failed: ', fact)
       stop(sprintf(
         ngettext(length(val), '%s is not TRUE', '%s are not all TRUE'),
         deparse_key(expr)
@@ -94,7 +94,7 @@ assert2 = function(fact, exprs, envir, all = TRUE) {
 #' @export
 `%==%` = function(x, y) {
   res = identical(x, y)
-  if (!res && isTRUE(getOption('testit.asserting', FALSE))) {
+  if (!res && !hide_error() && getOption('testit.asserting', FALSE)) {
     mc = match.call()
     info = paste(capture.output({
       cat(deparse_key(mc[[2]]), '(LHS) ==>\n')
@@ -110,41 +110,47 @@ assert2 = function(fact, exprs, envir, all = TRUE) {
 
 #' Run the tests of a package in its namespace
 #'
-#' The main purpose of this function is to expose the namespace of a package
-#' when running tests, which allows one to use non-exported objects in the
-#' package without having to resort to the triple colon \code{\link{:::}} trick.
+#' The tests are executed in a clean environment with the namespace of the
+#' package to be tested as the parent environment, which means you can use
+#' non-exported objects in the package without having to resort to the triple
+#' colon \code{\link{:::}} trick.
 #'
 #' The tests are assumed to be under the \file{testit/} or \file{tests/testit/}
 #' directory by default (depending on your working directory is the package root
-#' directory or the \file{tests/} directory). This function also looks for the
-#' \file{tests/testit/} directory under the package installation directory when
-#' the user-provided \code{dir} does not exist. The test scripts must be named
-#' of the form \samp{test-*.R}; other R scripts will not be treated as test
-#' files (but may also be useful, e.g. you can \code{\link{source}()} them in
-#' tests).
+#' directory or the \file{tests/} directory). The test scripts must be named of
+#' the form \samp{test-*.R} (or \samp{test-*.md} for snapshot tests); other
+#' files will not be treated as test files (but may also be useful, e.g. you can
+#' \code{\link{source}()} other scripts in tests).
 #'
-#' For \command{R CMD check}, this means the test R scripts (\file{test-*.R} are
-#' under \file{pkg_root/tests/testit/}. The R scripts are executed with
-#' \code{\link{sys.source}} in the namespace of the package to be tested; when
-#' an R script is executed, the working directory is the same as the directory
-#' containing this script, and all existing objects in the test environment will
+#' When a test is executed, the working directory is the same as the directory
+#' containing this test, and all existing objects in the test environment will
 #' be removed before the code is executed.
-#' @param package the package name
-#' @param dir the directory of the test files; by default, it is the directory
-#'   \file{testit/} or \file{tests/testit/} under the current working directory
+#'
+#' See \url{https://pkg.yihui.org/testit/#snapshot-testing} for more details
+#' about snapshot testing.
+#' @param package The package name. By default, it is detected from the
+#'   \file{DESCRIPTION} file if exists.
+#' @param dir The directory of the test files; by default, it is the directory
+#'   \file{testit/} or \file{tests/testit/} under the current working directory,
+#'   whichever exists. You can also specify a custom directory.
+#' @param update If \code{TRUE}, update snapshot files with actual output
+#'   instead of comparing. If \code{NA} (the default), update snapshot files
+#'   only if they are tracked by GIT (so you can view the diffs in GIT and
+#'   decide whether to accept or discard the changes). If \code{FALSE}, never
+#'   update snapshot files and always compare. For \code{NA} and \code{FALSE},
+#'   if the snapshot test fails, it will throw an error with a message showing
+#'   the location of the failed test. For \code{TRUE}, it will update the
+#'   snapshot file and never throw an error.
 #' @return \code{NULL}. All test files are executed, unless an error occurs.
-#' @note All test scripts (\samp{test-*.R}) must be encoded in UTF-8 if they
-#'   contain any multibyte characters.
-#' @seealso The \pkg{testthat} package (much more sophisticated).
+#' @note All test scripts must be encoded in UTF-8 if they contain any multibyte
+#'   characters.
 #' @export
 #' @examples \dontrun{test_pkg('testit')}
-test_pkg = function(package, dir = c('testit', 'tests/testit')) {
+test_pkg = function(package = pkg_name(), dir = c('testit', 'tests/testit'), update = NA) {
   # install the source package before running tests when this function is called
   # in a non-interactive R session that is not `R CMD check`
   install = !.env$installed && !interactive() &&
-    file.exists(desc <- file.path('../DESCRIPTION')) &&
-    is.na(Sys.getenv('_R_CHECK_PACKAGE_NAME_', NA)) &&
-    !is.na(p <- read.dcf(desc, fields = 'Package')[1, 1]) && p == package
+    is.na(Sys.getenv('_R_CHECK_PACKAGE_NAME_', NA)) && package == pkg_name()
   if (install) {
     .env$lib_old = lib_old = .libPaths()
     .env$lib_new = lib_new = tempfile('R-lib-', '.'); dir.create(lib_new)
@@ -157,20 +163,19 @@ test_pkg = function(package, dir = c('testit', 'tests/testit')) {
     if (res == 0) {
       .libPaths(c(lib_new, lib_old))
       .env$installed = TRUE
+      if (!is.na(i <- match(paste0('package:', package), search())))
+        detach(pos = i, unload = TRUE, force = TRUE)
     }
   }
-  if (!is.na(i <- match(paste0('package:', package), search())))
-    detach(pos = i, unload = TRUE, force = TRUE)
 
-  library(package, character.only = TRUE)
-
-  path = available_dir(c(dir, system.file('tests', 'testit', package = package)))
+  path = available_dir(dir)
   fs = list.files(path, full.names = TRUE)
   # clean up new files/dirs generated during testing
   if (getOption('testit.cleanup', TRUE)) on.exit({
     unlink(setdiff(list.files(path, full.names = TRUE), fs), recursive = TRUE)
   }, add = TRUE)
   rs = fs[grep('^test-.+[.][rR]$', basename(fs))]
+  ms = fs[grep('^test-.+[.]md$', basename(fs))]
   wd = getwd()
 
   # make all objects in the package visible to tests
@@ -180,6 +185,7 @@ test_pkg = function(package, dir = c('testit', 'tests/testit')) {
     withCallingHandlers(
       sys.source2(r, envir = env, top.env = getNamespace(package)),
       error = function(e) {
+        if (hide_error()) return()
         z = if (exists('.traceback', baseenv(), inherits = FALSE)) .traceback(5)
         if (length(z) == 0) return()
         z = z[[1]]
@@ -190,10 +196,13 @@ test_pkg = function(package, dir = c('testit', 'tests/testit')) {
       }
     )
   }
+
+  # run snapshot tests from markdown files
+  test_snaps(ms, env, update)
 }
 
 # add ANSI link on file path if supported
-error_loc = function(x, line, wd) {
+error_loc = function(x, line = 1, wd = '.') {
   if (!length(x)) return()
   if (!isTRUE(as.logical(Sys.getenv('RSTUDIO_CLI_HYPERLINKS'))))
     return(sprintf(' at %s#%d', x, line))
@@ -225,5 +234,17 @@ has_warning = function(expr) {
 #' @export
 #' @rdname has_message
 has_error = function(expr, silent = !interactive()) {
-  inherits(try(force(expr), silent = silent), 'try-error')
+  tryCatch({
+    if (silent) silence(expr) else expr; FALSE
+  }, error = function(e) {
+    if (!silent) cat('Error: ', conditionMessage(e), '\n', sep = '')
+    TRUE
+  })
+}
+
+hide_error = function() getOption('testit.hide.error', FALSE)
+
+silence = function(expr) {
+  op = options(testit.hide.error = TRUE); on.exit(options(op))
+  expr
 }
